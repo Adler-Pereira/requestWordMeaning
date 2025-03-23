@@ -21,6 +21,7 @@ public class RequestWordMeaning {
         String xml = "";
         String decodedXml;
         String meaning = "";
+        StringBuilder meanings = new StringBuilder();
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -47,18 +48,26 @@ public class RequestWordMeaning {
         decodedXml = URLDecoder.decode(xml, StandardCharsets.UTF_8);
 
         Pattern pattern = Pattern.compile("<def>(.*?)</def>", Pattern.DOTALL);
+
         Matcher matcher = pattern.matcher(decodedXml);
 
-        if (matcher.find()){
+        while (matcher.find()) {
             meaning = matcher
                     .group(1)
                     .replaceAll("\n", " ")
                     .replaceAll("\r", "")
                     .replaceAll("_", "")
                     .trim();
+
+            if (!meaning.isEmpty()) {
+                if (!meanings.isEmpty()) {
+                    meanings.append(" | "); // Separador entre definições
+                }
+                meanings.append(meaning);
+            }
         }
 
-        return createResponse(200, meaning);
+        return createResponse(200, meanings.toString());
     }
 
     private Map<String, Object> createResponse(int statusCode, String body) {
